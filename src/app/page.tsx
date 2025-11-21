@@ -489,7 +489,7 @@ export default function Home() {
       <section id="home" className="min-h-screen relative flex items-center justify-center px-6 sm:px-10 pt-20 sm:pt-24">
         {/* Background name across the whole screen */}
         <div aria-hidden className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 md:z-0">
-          <div className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[78vw] lg:max-w-[72vw] xl:max-w-[68vw] 2xl:max-w-[62vw] w-full flex justify-center px-2">
+          <div className="w-full flex justify-center px-0 sm:px-2">
             <span className="bg-name-text select-none uppercase">Tomáš Thúr</span>
           </div>
         </div>
