@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // Zoznam fotiek v galérii
 const galleryImages = [
@@ -20,8 +20,11 @@ const galleryImages = [
 function Galeria() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   const openImage = (src: string, index: number) => {
+    // Uložiť aktuálnu scroll pozíciu
+    scrollPositionRef.current = window.scrollY;
     setSelectedImage(src);
     setSelectedIndex(index);
   };
@@ -49,12 +52,22 @@ function Galeria() {
 
   useEffect(() => {
     if (!selectedImage) {
+      // Obnoviť scroll pozíciu
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.top = "";
+      document.documentElement.style.overflow = "";
+      window.scrollTo(0, scrollPositionRef.current);
       return;
     }
 
     // Blokovať scroll keď je lightbox otvorený
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.top = `-${scrollPositionRef.current}px`;
+    document.documentElement.style.overflow = "hidden";
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -91,7 +104,13 @@ function Galeria() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
+      // Obnoviť scroll pozíciu pri zatvorení
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.top = "";
+      document.documentElement.style.overflow = "";
+      window.scrollTo(0, scrollPositionRef.current);
     };
   }, [selectedImage, nextImage, prevImage, closeImage]);
 
@@ -118,13 +137,17 @@ function Galeria() {
 
       {/* Lightbox Modal */}
       {selectedImage && selectedIndex !== null && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-2 sm:p-4 touch-none"
-          onClick={closeImage}
-        >
-          {/* Zatvoriť button */}
+        <>
+          {/* Pozadie - kliknutie zatvorí lightbox */}
+          <div 
+            className="fixed inset-0 z-[9999] bg-black/95"
+            onClick={closeImage}
+            style={{ touchAction: 'none' }}
+          />
+          
+          {/* X tlačidlo - POD MENU na mobile, VEDĽA MENU na desktop */}
           <button
-            className="absolute top-4 right-4 text-white text-2xl sm:text-3xl hover:text-orange-400 transition-colors z-20 glass px-4 py-3 sm:px-3 sm:py-2 rounded-full touch-manipulation"
+            className="fixed top-24 sm:top-4 right-4 text-white text-4xl sm:text-3xl hover:text-orange-400 transition-colors z-[10000] bg-black/90 rounded-full w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center touch-manipulation shadow-lg border-2 border-white/20"
             onClick={(e) => {
               e.stopPropagation();
               closeImage();
@@ -134,10 +157,29 @@ function Galeria() {
             ✕
           </button>
 
+          {/* Obrázok kontajner */}
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 pointer-events-none"
+          >
+            <div 
+              className="relative max-w-7xl max-h-[90vh] w-full h-full pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={selectedImage}
+                alt={`Galéria ${selectedIndex + 1}`}
+                width={1200}
+                height={800}
+                className="w-full h-full object-contain rounded-lg"
+                priority
+              />
+            </div>
+          </div>
+
           {/* Predchádzajúci button */}
           {selectedIndex > 0 && (
             <button
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors z-20 glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
+              className="fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 z-[10000] text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
               onClick={(e) => {
                 e.stopPropagation();
                 prevImage();
@@ -151,7 +193,7 @@ function Galeria() {
           {/* Ďalší button */}
           {selectedIndex < galleryImages.length - 1 && (
             <button
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors z-20 glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
+              className="fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 z-[10000] text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
               onClick={(e) => {
                 e.stopPropagation();
                 nextImage();
@@ -163,25 +205,10 @@ function Galeria() {
           )}
 
           {/* Počítadlo */}
-          <div className="absolute top-4 left-4 text-white glass px-3 py-2 sm:px-4 rounded-full text-xs sm:text-sm z-20">
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[10000] text-white glass px-4 py-2 rounded-full text-sm pointer-events-none">
             {selectedIndex + 1} / {galleryImages.length}
           </div>
-
-          {/* Obrázok */}
-          <div
-            className="relative max-w-7xl max-h-[90vh] w-full h-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={selectedImage}
-              alt={`Galéria ${selectedIndex + 1}`}
-              width={1200}
-              height={800}
-              className="w-full h-full object-contain rounded-lg"
-              priority
-            />
-          </div>
-        </div>
+        </>
       )}
     </>
   );
@@ -462,7 +489,7 @@ export default function Home() {
       <section id="home" className="min-h-screen relative flex items-center justify-center px-6 sm:px-10 pt-20 sm:pt-24">
         {/* Background name across the whole screen */}
         <div aria-hidden className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 md:z-0">
-          <div className="max-w-[92vw] sm:max-w-[86vw] md:max-w-[78vw] lg:max-w-[72vw] xl:max-w-[68vw] 2xl:max-w-[62vw] w-full flex justify-center">
+          <div className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[78vw] lg:max-w-[72vw] xl:max-w-[68vw] 2xl:max-w-[62vw] w-full flex justify-center px-2">
             <span className="bg-name-text select-none uppercase">Tomáš Thúr</span>
           </div>
         </div>
@@ -487,12 +514,12 @@ export default function Home() {
                 maxHeight: "calc(100svh - 80px)"
               }}
             />
-            {/* Gradient fade na spodnej strane */}
+            {/* Gradient fade na spodnej strane - prechádza do transparentného */}
             <div 
               className="absolute bottom-0 left-0 right-0 pointer-events-none"
               style={{
-                height: "40%",
-                background: "linear-gradient(to bottom, transparent 0%, #0b0b0b 100%)"
+                height: "30%",
+                background: "linear-gradient(to bottom, transparent 0%, rgba(11, 11, 11, 0.3) 50%, rgba(11, 11, 11, 0.8) 100%)"
               }}
             />
           </div>

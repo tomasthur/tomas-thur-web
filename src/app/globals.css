@@ -70,6 +70,7 @@ body {
   z-index: 0;
 }
 
+
 .text-gradient {
   background: linear-gradient(90deg, #ffffff 0%, #ffcfb3 35%, #ff5733 90%);
   -webkit-background-clip: text;
@@ -146,8 +147,8 @@ body {
 
 .bg-name-text {
   font-weight: 900;
-  letter-spacing: 0.02em;
-  font-size: clamp(72px, 14vw, 220px);
+  letter-spacing: -0.01em;
+  font-size: clamp(44px, 10vw, 220px);
   line-height: 0.9;
   color: rgba(255, 255, 255, 0.18); /* more visible on mobile */
   text-shadow: 0 0 2px rgba(255,255,255,0.08);
@@ -156,9 +157,18 @@ body {
   animation: gentleFloat 8s ease-in-out infinite;
 }
 
+@media (min-width: 640px) {
+  .bg-name-text {
+    font-size: clamp(64px, 12vw, 220px);
+    letter-spacing: 0.01em;
+  }
+}
+
 @media (min-width: 768px) {
   .bg-name-text {
+    font-size: clamp(72px, 14vw, 220px);
     color: rgba(255, 255, 255, 0.12); /* subtler on desktop */
+    letter-spacing: 0.02em;
   }
 }
 
