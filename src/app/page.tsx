@@ -48,7 +48,13 @@ function Galeria() {
   }, [selectedIndex]);
 
   useEffect(() => {
-    if (!selectedImage) return;
+    if (!selectedImage) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    // Blokovať scroll keď je lightbox otvorený
+    document.body.style.overflow = "hidden";
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -60,8 +66,33 @@ function Galeria() {
       }
     };
 
+    // Swipe down na zatvorenie (mobile)
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.changedTouches[0].screenY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchEndY = e.changedTouches[0].screenY;
+      const swipeDistance = touchStartY - touchEndY;
+      // Ak swipe down viac ako 100px, zatvor lightbox
+      if (swipeDistance < -100) {
+        closeImage();
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      document.body.style.overflow = "";
+    };
   }, [selectedImage, nextImage, prevImage, closeImage]);
 
   return (
@@ -88,13 +119,16 @@ function Galeria() {
       {/* Lightbox Modal */}
       {selectedImage && selectedIndex !== null && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-2 sm:p-4 touch-none"
           onClick={closeImage}
         >
           {/* Zatvoriť button */}
           <button
-            className="absolute top-4 right-4 text-white text-3xl hover:text-orange-400 transition-colors z-10 glass px-3 py-2 rounded-full"
-            onClick={closeImage}
+            className="absolute top-4 right-4 text-white text-2xl sm:text-3xl hover:text-orange-400 transition-colors z-20 glass px-4 py-3 sm:px-3 sm:py-2 rounded-full touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation();
+              closeImage();
+            }}
             aria-label="Zavrieť"
           >
             ✕
@@ -103,7 +137,7 @@ function Galeria() {
           {/* Predchádzajúci button */}
           {selectedIndex > 0 && (
             <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-orange-400 transition-colors z-10 glass px-4 py-3 rounded-full"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors z-20 glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
               onClick={(e) => {
                 e.stopPropagation();
                 prevImage();
@@ -117,7 +151,7 @@ function Galeria() {
           {/* Ďalší button */}
           {selectedIndex < galleryImages.length - 1 && (
             <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-orange-400 transition-colors z-10 glass px-4 py-3 rounded-full"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white text-3xl sm:text-4xl hover:text-orange-400 transition-colors z-20 glass px-3 py-3 sm:px-4 sm:py-3 rounded-full touch-manipulation"
               onClick={(e) => {
                 e.stopPropagation();
                 nextImage();
@@ -129,7 +163,7 @@ function Galeria() {
           )}
 
           {/* Počítadlo */}
-          <div className="absolute top-4 left-4 text-white glass px-4 py-2 rounded-full text-sm">
+          <div className="absolute top-4 left-4 text-white glass px-3 py-2 sm:px-4 rounded-full text-xs sm:text-sm z-20">
             {selectedIndex + 1} / {galleryImages.length}
           </div>
 
@@ -404,7 +438,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="hero-bg relative">
+    <div className="hero-bg relative overflow-x-hidden max-w-full">
       {/* Fixed Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 py-6 flex items-center justify-between max-w-7xl mx-auto w-full transition-all duration-300 ${
         isScrolled ? "glass-opaque" : "glass"

@@ -21,6 +21,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -28,6 +30,21 @@ body {
   color: #ededed;
   font-family: var(--font-geist-sans), system-ui, -apple-system, Segoe UI,
     Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
+  width: 100%;
+}
+
+/* Zabrániť horizontálnemu scrollu */
+* {
+  box-sizing: border-box;
+}
+
+/* Touch manipulation pre lepšiu responzivitu na mobile */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Display font is injected via next/font (Playfair Display) into --font-display */
